@@ -832,7 +832,33 @@ html[data-shav] .mt{display:none}
 .r.last.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots)::after{content:""!important;display:block!important;position:absolute!important;right:auto!important;left:-5px!important;bottom:1px!important;width:10px!important;height:14px!important;background:var(--bt)!important;-webkit-mask:var(--tl2) center/100% 100% no-repeat!important;mask:var(--tl2) center/100% 100% no-repeat!important}
 .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots):not(.tail)::after{ }
 </style>
-</head>
+
+<style id="imessage-no-tail-final-override">
+/* 最终覆盖：所有普通文字气泡都使用完整圆角，彻底关闭所有尾巴伪元素 */
+#chat .r .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots),
+#chat .r.last.mine .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots),
+#chat .r.last.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots) {
+  border-radius: 24px !important;
+  overflow: visible;
+}
+#chat .r .m::before, #chat .r .m::after,
+#chat .r.first.theirs .m::before, #chat .r.first.mine .m::before,
+#chat .r.last.mine .m::after, #chat .r.last.theirs .m::after,
+#chat .r.last.mine .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots)::after,
+#chat .r.last.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots)::after {
+  content: none !important; display: none !important; width: 0 !important; height: 0 !important;
+  background: none !important; -webkit-mask: none !important; mask: none !important;
+}
+/* 导入头像始终圆形显示，图片按比例居中裁切 */
+#av, .av, .av2, .avw, #callAv, #pillAv {
+  border-radius: 50% !important; overflow: hidden !important;
+}
+#av img, .av img, .av2 img, .avw img, #callAv img, #pillAv img {
+  width: 100% !important; height: 100% !important; object-fit: cover !important;
+  border-radius: 50% !important; clip-path: circle(50% at 50% 50%) !important; display: block !important;
+}
+</style>
+\n</head>
 <body>
 <div class="app" id="app">
   <header>

@@ -2597,11 +2597,7 @@ function pollCard(m,e){
 .av img,.av2 img,#av img{width:100%;height:100%;object-fit:cover;border-radius:50%!important;clip-path:circle(50% at 50% 50%)!important;display:block}
 </style>
 
-<style id="restore-message-timestamps-with-avatars">
-/* 修复：显示头像时也保留消息时间戳；旧样式 html[data-shav] .mt 曾将时间隐藏 */
-html[data-shav] .mt, #chat .mt { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; }
-#chat .m.pic .mt { display: inline-flex !important; }
-</style>
+
 </body>
 </html>
 
@@ -2759,4 +2755,11 @@ html[data-frm] .av2.me img, html[data-fro] .av2.ot img, html[data-fro] #av img {
   border-radius: 50% !important;
   clip-path: circle(50% at 50% 50%) !important;
 }
+</style>
+
+<style id="final-avatar-timestamp-visibility-fix">
+/* 修复头像模式下时间戳不显示：实际时间戳类名是 .tm，不是 .mt */
+html[data-shav] #chat .avw { position:relative !important; overflow:visible !important; flex:none !important; }
+html[data-shav] #chat .avw .tm { display:block !important; position:absolute !important; top:39px !important; left:50% !important; transform:translateX(-50%) !important; z-index:5 !important; visibility:visible !important; opacity:.72 !important; color:var(--mute) !important; font-size:10px !important; line-height:12px !important; white-space:nowrap !important; overflow:visible !important; }
+html[data-shav] #chat .r:has(.avw .tm) { margin-bottom:17px !important; }
 </style>

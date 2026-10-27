@@ -63,6 +63,8 @@ html.android,html.android body{height:100%;height:100dvh;min-height:100dvh}
   .app{min-height:100dvh}
 }
 html.android .app{min-height:100dvh}
+/* 键盘弹出时必须解除 100dvh 的最小高度，否则页面比可视区高，输入框会被键盘盖住 */
+html.kbopen,html.kbopen body,html.kbopen .app{min-height:0!important}
 
 #list,.ls,#cardsPage,#cfgPage,#call,#lb,.sheet,#modal,#mc{height:var(--H,100%)}
 .app{height:100%}
@@ -200,19 +202,27 @@ input[type=checkbox]:checked::after{transform:translateX(18px)}
 .pay-foot{font-size:11px;padding:6px 14px;background:none;border-top:1px solid rgba(255,255,255,.3);opacity:.92}
 /* 表情包 */
 .pic.stk img{max-height:140px;max-width:140px;border-radius:8px}
-.stk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:auto;align-content:start;gap:10px;max-height:46vh;overflow-y:auto;flex:none;-webkit-overflow-scrolling:touch}
-.panel .stk-t{position:relative;display:block;width:100%;height:auto;min-height:0;padding:0;border-radius:12px;background:var(--gray);overflow:hidden}
-.stk-t::before{content:"";display:block;padding-top:100%}
-.stk-t img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.stk-bar{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--mute)}
+.panel .stk-bar button{padding:6px 16px;border-radius:14px;font-size:14px}
+.stk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-content:start;max-height:52vh;overflow-y:auto;flex:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* 用 div + padding-bottom 撑出正方形（不用 button，部分安卓 WebView 里 button 的伪元素百分比内边距会塌成一条线） */
+.stk-t{position:relative;display:block;width:100%;height:0;padding:0 0 100% 0;border-radius:10px;background:var(--gray);overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stk-t img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;padding:5px;display:block;pointer-events:none}
 .stk-t.off img{opacity:.4}
-.stk-t .x{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#e5484d;color:#fff;font-size:14px;line-height:20px;text-align:center}
+.stk-t.add{background:var(--bg);outline:1.5px dashed var(--line);outline-offset:-1.5px}
+.stk-t.add span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:200;color:var(--mute)}
+.stk-t .ck{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.28);color:#fff;font-size:13px;line-height:17px;text-align:center}
+.stk-t.sel .ck{background:var(--blue);border-color:var(--blue)}
+.stk-t.sel{outline:2px solid var(--blue);outline-offset:-2px}
+.panel .stk-del{background:#e5484d;color:#fff}
+.panel .stk-del[disabled]{opacity:.4}
+.stk-empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:24px 0;font-size:14px}
 .bgwrap{display:flex;flex-direction:column;gap:10px}
 .bgwrap label.sw{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--gray);border-radius:12px;font-size:15px;color:var(--ink)}
 .bgwrap .bgst{background:var(--gray);border-radius:12px;padding:6px 14px}
 .bgwrap .bgrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:14px;color:var(--ink)}
 .bgwrap .bgrow span{color:var(--mute);flex:none}.bgwrap .bgrow b{font-weight:500;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bgwrap .bgbtn{font:inherit;font-size:15px;border:0;border-radius:12px;padding:12px;background:var(--gray);color:var(--blue);width:100%}
-.stk-empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:24px 0;font-size:14px}
 /* 转账卡片样式 */
 .mine .m.pay,.theirs .m.pay{width:236px;max-width:78%;border-radius:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.04)}
 .mine .m.pay.transfer,.theirs .m.pay.transfer{--pb:#fff6ec;--pt:#4a3b2f;--ps:#a08c7a;--pl:#bba892;--pg:linear-gradient(135deg,#ffd6a8,#ffae6b);background:var(--pb);color:var(--pt)}
@@ -1436,24 +1446,46 @@ function pickStickers(cb){
   f.click();
 }
 function stickerDlg(){
-  let mg=false;
+  let mg=false,sel=new Set();
   modal('表情包',b=>{
     const draw=()=>{
       b.innerHTML='';
-      const top=h('div','rowf'),add=h('button','','＋ 添加表情包'),mgb=h('button','',mg?'完成':'管理');
-      add.onclick=()=>pickStickers(u=>{S.cards.push(mk('image',u,'public'));save();draw();if(!$('cardsPage').hidden)renderCards()});
-      mgb.onclick=()=>{mg=!mg;draw()};top.append(add,mgb);b.append(top);
-      const g=h('div','stk-grid'),ims=S.cards.filter(c=>c.type==='image');
-      if(!ims.length)g.append(h('div','stk-empty','还没有表情包，点上面添加'));
-      ims.forEach(c=>{
-        const t=h('button','stk-t'+(c.enabled===false?' off':'')),im=h('img');im.src=c.content;im.alt='';t.append(im);
+      const ims=S.cards.filter(c=>c.type==='image');
+      const bar=h('div','stk-bar'),mgb=h('button','',mg?'完成':'管理');
+      bar.append(h('span','',mg?(sel.size?'已选 '+sel.size+' 个':'点选要删除的表情'):'共 '+ims.length+' 个 · 长按可管理'),mgb);
+      mgb.onclick=()=>{mg=!mg;sel.clear();draw()};
+      b.append(bar);
+      const g=h('div','stk-grid');
+      if(!mg){
+        const ad=h('div','stk-t add');ad.append(h('span','','+'));
+        ad.onclick=()=>pickStickers(u=>{S.cards.push(mk('image',u,'public'));save();draw();if(!$('cardsPage').hidden)renderCards()});
+        g.append(ad);
+      }
+      if(!ims.length&&mg)g.append(h('div','stk-empty','还没有表情包'));
+      /* 最新添加的排在前面，和微信一致 */
+      ims.slice().reverse().forEach(c=>{
+        const t=h('div','stk-t'+(c.enabled===false?' off':'')+(sel.has(c)?' sel':'')),im=h('img');
+        im.loading='lazy';im.decoding='async';im.alt='';im.src=c.content;t.append(im);
         if(mg){
-          t.append(h('span','x','×'));
-          t.onclick=()=>{S.cards=S.cards.filter(x=>x!==c);save();draw();if(!$('cardsPage').hidden)renderCards()};
-        }else t.onclick=()=>{$('modal').hidden=true;push({id:Date.now(),mine:true,type:'image',sticker:true,src:c.content,t:Date.now(),read:false})};
+          t.append(h('span','ck',sel.has(c)?'✓':''));
+          t.onclick=()=>{sel.has(c)?sel.delete(c):sel.add(c);draw()};
+        }else{
+          let lp=0,fired=false;
+          const clr=()=>clearTimeout(lp);
+          t.addEventListener('touchstart',()=>{fired=false;lp=setTimeout(()=>{fired=true;mg=true;sel=new Set([c]);draw()},550)},{passive:true});
+          ['touchmove','touchend','touchcancel'].forEach(ev=>t.addEventListener(ev,clr,{passive:true}));
+          t.addEventListener('contextmenu',e=>e.preventDefault());
+          t.onclick=()=>{if(fired){fired=false;return}$('modal').hidden=true;push({id:Date.now(),mine:true,type:'image',sticker:true,src:c.content,t:Date.now(),read:false})};
+        }
         g.append(t);
       });
       b.append(g);
+      if(mg){
+        const del=h('button','stk-del','删除'+(sel.size?'（'+sel.size+'）':''));
+        del.disabled=!sel.size;
+        del.onclick=()=>{if(!sel.size)return;S.cards=S.cards.filter(x=>!sel.has(x));sel.clear();save();draw();if(!$('cardsPage').hidden)renderCards()};
+        b.append(del);
+      }
     };
     draw();
   },[['关闭']]);
@@ -1613,13 +1645,18 @@ function bgTab(body){
 
 /* ========== 锁屏：键盘弹出也不让页面晃动，禁止双指缩放 ========== */
 (()=>{
-  const vv=window.visualViewport,app=$('app');let raf=0,lastH=-1,fullH=0;
+  const vv=window.visualViewport,app=$('app');let raf=0,lastH=-1,fullH=0,base=innerHeight,wasKb=false;
   const probe=document.createElement('div');probe.style.cssText='position:fixed;top:0;bottom:0;left:0;width:1px;visibility:hidden;pointer-events:none';document.body.append(probe);
   const typing=()=>{const a=document.activeElement;return !!a&&(a.tagName==='TEXTAREA'||(a.tagName==='INPUT'&&!/^(checkbox|radio|file|color|range|button|submit)$/.test(a.type)))};
+  /* 键盘高度 = 没弹键盘时的窗口高度 − 当前可用高度。
+     不同安卓浏览器处理键盘的方式不同：有的只缩小 visualViewport，有的连 innerHeight 一起缩小，所以取两者较小值 */
+  const availH=()=>vv?Math.min(vv.height,innerHeight):innerHeight;
+  const kbOpen=()=>typing()&&base-availH()>80;
   const apply=()=>{
     raf=0;
-    /* 键盘没弹出时不用 visualViewport 的高度（iOS 主屏幕模式下它可能偏小，会让底栏悬空），直接交给 CSS 的整屏高度 */
-    const kb=typing()&&vv&&vv.height<innerHeight-80;
+    const kb=kbOpen();
+    if(!typing())base=innerHeight;
+    document.documentElement.classList.toggle('kbopen',kb);
     if(!kb){
       /* 以网页实际可绘制的高度为准（iOS 主屏幕模式下它可能比屏幕矮一截，矮的那一截网页画不到） */
       const standalone=matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches||navigator.standalone;
@@ -1632,21 +1669,27 @@ function bgTab(body){
       const val=(typeof man==='number')?man:(gap>20?0:null);
       document.documentElement.style.setProperty('--sab',val!=null?val+'px':'env(safe-area-inset-bottom)');
     }
-    const h=kb?vv.height:fullH;
+    const h=kb?Math.round(availH()):fullH;
     if(h!==lastH){lastH=h;app.style.height=h+'px'}
-    document.documentElement.style.setProperty('--vvh',(kb?vv.height:innerHeight)+'px');document.documentElement.style.setProperty('--vvt',(vv?vv.offsetTop:0)+'px');
-    app.style.transform=kb&&vv.offsetTop>0?'translate3d(0,'+vv.offsetTop+'px,0)':'';
+    document.documentElement.style.setProperty('--vvh',h+'px');document.documentElement.style.setProperty('--vvt',(vv?vv.offsetTop:0)+'px');
+    app.style.transform=kb&&vv&&vv.offsetTop>0&&innerHeight>=base-10?'translate3d(0,'+vv.offsetTop+'px,0)':'';
+    if(kb&&!wasKb){
+      /* 键盘刚弹出：把输入框和最新消息顶到可视区内 */
+      const keep=()=>{const c=document.getElementById('chat');if(c)c.scrollTop=c.scrollHeight;const t=document.getElementById('ta');if(t&&typing())t.scrollIntoView({block:'nearest'})};
+      keep();setTimeout(keep,120);setTimeout(keep,350);
+    }
+    wasKb=kb;
   };
   const sched=()=>{if(!raf)raf=requestAnimationFrame(apply)};
   if(vv){vv.addEventListener('resize',sched);vv.addEventListener('scroll',sched)}
-  addEventListener('resize',sched);addEventListener('orientationchange',sched);addEventListener('pageshow',sched);
+  addEventListener('resize',sched);addEventListener('orientationchange',()=>{base=innerHeight;sched()});addEventListener('pageshow',sched);
   /* 键盘收起后 iOS 常常不及时恢复：连续多次重算，并把被键盘顶偏的页面滚回原位 */
-  const settle=()=>{[0,60,160,320,600,1000,1600].forEach(d=>setTimeout(()=>{apply();if(!typing()||!(vv&&vv.height<innerHeight-80)){if(scrollY||(vv&&vv.offsetTop))scrollTo(0,0);app.style.transform='';if(!typing()){lastH=-1;apply()}}},d))};
-  document.addEventListener('focusin',()=>{sched();setTimeout(sched,300);setTimeout(sched,700)});
+  const settle=()=>{[0,60,160,320,600,1000,1600].forEach(d=>setTimeout(()=>{apply();if(!kbOpen()){if(scrollY||(vv&&vv.offsetTop))scrollTo(0,0);app.style.transform='';if(!typing()){lastH=-1;apply()}}},d))};
+  document.addEventListener('focusin',()=>{sched();[100,300,700,1200].forEach(d=>setTimeout(sched,d))});
   document.addEventListener('focusout',settle);
-  if(vv)vv.addEventListener('resize',()=>{if(!(vv.height<innerHeight-80))settle()});
+  if(vv)vv.addEventListener('resize',()=>{if(!kbOpen())settle()});
   document.addEventListener('scroll',()=>{if(!typing()&&scrollY)scrollTo(0,0)},{passive:true});
-  apply();window.relayout=()=>{lastH=-1;fullH=0;sched()};
+  apply();window.relayout=()=>{lastH=-1;fullH=0;base=innerHeight;sched()};
   document.addEventListener('gesturestart',e=>e.preventDefault());
 })();
 
@@ -2767,44 +2810,4 @@ html[data-shav] #chat .r:has(.avw .tm) { margin-bottom:17px !important; }
 /* 每条带头像的文字消息都为头像下方时间戳留出空间 */
 html[data-shav] #chat .r:has(.avw .tm) { margin-bottom: 17px !important; }
 html[data-shav] #chat .avw .tm { display:block !important; visibility:visible !important; opacity:.72 !important; }
-</style>
-<style id="avatar-circle-honor-fix">
-.av, .av2, #av, .lav, .cpv, .pav, #callAv, #pillAv, .call-av {
-  border-radius: 50% !important;
-  overflow: hidden !important;
-  -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
-  mask-image: radial-gradient(white, black) !important;
-}
-.av img, .av2 img, #av img,
-.lav img, .cpv img, .pav img,
-#callAv img, #pillAv img, .call-av img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  object-position: center !important;
-  border-radius: 50% !important;
-  -webkit-border-radius: 50% !important;
-  clip-path: circle(50% at 50% 50%) !important;
-  -webkit-clip-path: circle(50% at 50% 50%) !important;
-  display: block !important;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-.av        { width: 46px  !important; height: 46px  !important; }
-.av2       { width: 36px  !important; height: 36px  !important; }
-.lav       { width: 54px  !important; height: 54px  !important; }
-.cpv       { width: 56px  !important; height: 56px  !important; }
-.pav, #pillAv { width: 30px !important; height: 30px !important; }
-#callAv, .call-av { width: 124px !important; height: 124px !important; }
-html[data-frm] .av2.me, html[data-fro] .av2.ot, html[data-fro] #av {
-  overflow: visible !important;
-}
-html[data-frm] .av2.me img, html[data-fro] .av2.ot img, html[data-fro] #av img {
-  border-radius: 50% !important;
-  clip-path: circle(50% at 50% 50%) !important;
-  -webkit-clip-path: circle(50% at 50% 50%) !important;
-}
-html[data-shav] #chat .avw { overflow: visible !important; }
 </style>

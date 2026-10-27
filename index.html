@@ -1450,8 +1450,8 @@ async function notify(title,body,tag,force){
 const notifyMsg=(m,ct)=>notify(ct.profile.name,String(prev(m)));
 function bgTab(body){
   const w=h('div','bgwrap');
-  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
-  w.append(h('div','hint',standalone?'当前：已从主屏幕打开。':'当前：在浏览器里打开。iPhone 需要先用 Safari 把网站「添加到主屏幕」，再从主屏幕图标打开，通知才可用（iOS 16.4 以上）。'));
+  const standalone=matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches||navigator.standalone;
+  w.append(h('div','hint',standalone?'当前：已从主屏幕打开（全屏/独立窗口）。':'当前：在浏览器里打开。安卓用 Chrome「添加到主屏幕」；iPhone 用 Safari 添加到主屏幕后再打开，通知才可用（iOS 16.4 以上）。'));
   const sw=(label,key,onOn)=>{
     const l=h('label','sw'),c=h('input');c.type='checkbox';c.checked=!!G.sys[key];
     c.onchange=async()=>{
@@ -1523,7 +1523,7 @@ function bgTab(body){
     const kb=typing()&&vv&&vv.height<innerHeight-80;
     if(!kb){
       /* 以网页实际可绘制的高度为准（iOS 主屏幕模式下它可能比屏幕矮一截，矮的那一截网页画不到） */
-      const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+      const standalone=matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches||navigator.standalone;
       const sh=innerWidth<=innerHeight?screen.height:screen.width;
       const H=Math.max(innerHeight,Math.round(probe.getBoundingClientRect().height));
       if(H!==fullH){fullH=H;document.documentElement.style.setProperty('--H',H+'px')}

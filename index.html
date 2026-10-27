@@ -2647,8 +2647,11 @@ html[data-pre="bw"]{--bm:#fff !important;--bmc:#000 !important;--bt:#000 !import
 
 /* ===== 全站强调色跟随气泡；头像框 ===== */
 html{accent-color:var(--ac)}
-.av,.av2{position:relative;overflow:visible}
-.av img,.av2 img{border-radius:50%}
+.av,.av2{position:relative;border-radius:50%;overflow:hidden}
+.av img,.av2 img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;clip-path:circle(50% at 50% 50%)}
+/* 有头像框时允许装饰溢出，图片本身仍保持圆形裁剪 */
+html[data-frm] .av2.me,html[data-fro] .av2.ot,html[data-fro] #av{overflow:visible}
+html[data-frm] .av2.me img,html[data-fro] .av2.ot img,html[data-fro] #av img{clip-path:circle(50% at 50% 50%);border-radius:50%}
 html[data-frm] .av2.me::after,html[data-fro] .av2.ot::after,html[data-fro] #av::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:3;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
 html[data-frm] .av2.me::after{width:calc(var(--fsm,130)*1%);height:calc(var(--fsm,130)*1%);background-image:var(--frm)}
 html[data-fro] .av2.ot::after,html[data-fro] #av::after{width:calc(var(--fso,130)*1%);height:calc(var(--fso,130)*1%);background-image:var(--fro)}

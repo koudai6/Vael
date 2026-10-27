@@ -970,6 +970,9 @@ const S={};
 ['cards','groups','cardSeq','skin','skins'].forEach(k=>Object.defineProperty(S,k,{get:()=>G[k],set:v=>{G[k]=v}}));
 const RT={},rt=ct=>RT[ct.id]||(RT[ct.id]={typing:false,timer:null});
 let booted=false,timer,view='list',modalAt=0,modalSeq=0,quoted=null,editing=null;
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;toast('已安装到桌面，请从桌面图标打开');});
 
 /* 存储：IndexedDB 为主，小数据另存 localStorage 备份 */
 const kv={db:null,
@@ -1493,7 +1496,27 @@ const notifyMsg=(m,ct)=>notify(ct.profile.name,String(prev(m)));
 function bgTab(body){
   const w=h('div','bgwrap');
   const standalone=matchMedia('(display-mode: standalone),(display-mode: fullscreen)').matches||navigator.standalone;
-  w.append(h('div','hint',standalone?'当前：已从主屏幕打开（全屏/独立窗口）。':'当前：在浏览器或本地文件中打开，无法真正全屏。安卓请用 Chrome 打开在线地址 → 菜单「安装应用/添加到主屏幕」→ 从桌面图标打开。Edge 打开本地 html、或 APK 未开沉浸式时都会露出系统栏。iPhone 用 Safari 添加到主屏幕。'));
+  w.append(h('div','hint',standalone?'当前：已从主屏幕打开（全屏/独立窗口）。':'当前：在浏览器里打开。要点右上角菜单「安装应用」，或点下面按钮；装完后必须从桌面图标打开，运行环境才会变成全屏/主屏幕。'));
+  if(!standalone){
+    const ib=h('button','bgbtn','安装到桌面（全屏用）');
+    ib.onclick=async()=>{
+      if(deferredPrompt){
+        deferredPrompt.prompt();
+        const r=await deferredPrompt.userChoice.catch(()=>({}));
+        deferredPrompt=null;
+        if(r&&r.outcome==='accepted')toast('安装成功，请从桌面图标打开');
+        else toast('已取消安装');
+        return;
+      }
+      // 无 beforeinstallprompt：引导手动安装
+      const https=/^https:/.test(location.protocol);
+      const swOk=!!(navigator.serviceWorker&&(await navigator.serviceWorker.getRegistration().catch(()=>null)));
+      if(!https){toast('需要 https 网址才能安装');return}
+      if(!swOk){toast('Service Worker 未就绪，请刷新后再试');return}
+      toast('请点 Chrome 右上角 ⋮ → 安装应用 / 添加到主屏幕');
+    };
+    w.append(ib);
+  }
   const sw=(label,key,onOn)=>{
     const l=h('label','sw'),c=h('input');c.type='checkbox';c.checked=!!G.sys[key];
     c.onchange=async()=>{

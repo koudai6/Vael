@@ -824,6 +824,14 @@ html[data-shav] .mt{display:none}
 /* 聊天里的抉择卡片 */
 
 </style>
+
+<style id="bubble-tail-final-fix">
+/* 二次修复：关闭旧版重复伪元素，只保留每组最后一条普通文字气泡的单侧小尾巴 */
+.m::before{content:none!important;display:none!important}
+.r.last.mine .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots)::after{content:""!important;display:block!important;position:absolute!important;left:auto!important;right:-5px!important;bottom:1px!important;width:10px!important;height:14px!important;background:var(--bm)!important;-webkit-mask:var(--tr2) center/100% 100% no-repeat!important;mask:var(--tr2) center/100% 100% no-repeat!important}
+.r.last.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots)::after{content:""!important;display:block!important;position:absolute!important;right:auto!important;left:-5px!important;bottom:1px!important;width:10px!important;height:14px!important;background:var(--bt)!important;-webkit-mask:var(--tl2) center/100% 100% no-repeat!important;mask:var(--tl2) center/100% 100% no-repeat!important}
+.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots):not(.tail)::after{ }
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -2678,4 +2686,45 @@ html[data-shav] .r .m{max-width:calc(100% - 120px)}
 .cg-row input[type=checkbox]:checked::after{background:var(--acc)}
 .cg-v input{border-color:color-mix(in srgb,var(--ac) 25%,transparent)}
 @media(prefers-color-scheme:dark){#cfgPage{background:color-mix(in srgb,var(--ac) 8%,#0b0b0c)}.cg-card{background:color-mix(in srgb,var(--ac) 8%,#1b1b1d)}.cg-chip{background:transparent}}
+</style>
+
+<style id="imessage-round-bubble-avatar-final-fix">
+/* 最终修复：iMessage 圆润气泡，不显示任何尾巴；导入头像强制圆形裁切 */
+.r .m:not(.pic):not(.pay):not(.emo):not(.poll) {
+  border-radius: 24px !important;
+  overflow-wrap: anywhere;
+}
+.r .m::before,
+.r .m::after,
+.r.first.theirs .m::before,
+.r.first.mine .m::before,
+.r.last.mine .m::after,
+.r.last.theirs .m::after {
+  content: none !important;
+  display: none !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+}
+.av, .av2, #av, #callAv, #pillAv {
+  width: var(--avatar-size, auto);
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+.av img, .av2 img, #av img, #callAv img, #pillAv img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  clip-path: circle(50% at 50% 50%) !important;
+  display: block !important;
+}
+/* 头像框装饰可以显示在头像外，但头像图片本身仍保持圆形 */
+html[data-frm] .av2.me, html[data-fro] .av2.ot, html[data-fro] #av {
+  overflow: visible !important;
+}
+html[data-frm] .av2.me img, html[data-fro] .av2.ot img, html[data-fro] #av img {
+  border-radius: 50% !important;
+  clip-path: circle(50% at 50% 50%) !important;
+}
 </style>

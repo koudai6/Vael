@@ -2596,6 +2596,12 @@ function pollCard(m,e){
 .av,.av2,#av{border-radius:50%!important;overflow:hidden!important}
 .av img,.av2 img,#av img{width:100%;height:100%;object-fit:cover;border-radius:50%!important;clip-path:circle(50% at 50% 50%)!important;display:block}
 </style>
+
+<style id="restore-message-timestamps-with-avatars">
+/* 修复：显示头像时也保留消息时间戳；旧样式 html[data-shav] .mt 曾将时间隐藏 */
+html[data-shav] .mt, #chat .mt { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; }
+#chat .m.pic .mt { display: inline-flex !important; }
+</style>
 </body>
 </html>
 

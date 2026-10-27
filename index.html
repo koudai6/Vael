@@ -1066,10 +1066,9 @@ function render(keep){
     const nx2=S.msgs[i+1];
     if(!nx2||nx2.type==='call'||nx2.mine!==m.mine||new Date(nx2.t).toDateString()!==dk)r.classList.add('last');
     if(S.skin&&S.skin.showAv){
-      // 每条消息都有头像；时间戳只在文字消息的最后一条下显示；图片/表情包不要时间戳
-      const isLast=r.classList.contains('last');
+      // 每条文字消息的头像下方都显示自己的时间戳；图片/表情包不显示时间戳
       const noTm=m.type==='image'||m.type==='emoji'||m.sticker;
-      const av=mkAv(m.mine,(isLast&&!noTm)?m.t:null);
+      const av=mkAv(m.mine,!noTm?m.t:null);
       if(m.mine)r.append(e,av);else r.append(av,e);
     }else r.append(e);
     c.append(r);
@@ -2762,4 +2761,10 @@ html[data-frm] .av2.me img, html[data-fro] .av2.ot img, html[data-fro] #av img {
 html[data-shav] #chat .avw { position:relative !important; overflow:visible !important; flex:none !important; }
 html[data-shav] #chat .avw .tm { display:block !important; position:absolute !important; top:39px !important; left:50% !important; transform:translateX(-50%) !important; z-index:5 !important; visibility:visible !important; opacity:.72 !important; color:var(--mute) !important; font-size:10px !important; line-height:12px !important; white-space:nowrap !important; overflow:visible !important; }
 html[data-shav] #chat .r:has(.avw .tm) { margin-bottom:17px !important; }
+</style>
+
+<style id="timestamp-every-message-fix">
+/* 每条带头像的文字消息都为头像下方时间戳留出空间 */
+html[data-shav] #chat .r:has(.avw .tm) { margin-bottom: 17px !important; }
+html[data-shav] #chat .avw .tm { display:block !important; visibility:visible !important; opacity:.72 !important; }
 </style>

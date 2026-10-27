@@ -374,10 +374,11 @@ header{display:flex;align-items:center;gap:6px;padding:6px 8px 8px 2px;backgroun
 .m{max-width:80%;padding:6px 10px 6px 12px;border-radius:var(--br,12px);box-shadow:0 1px 1px rgba(0,0,0,.08)}
 .mine .m{background:var(--bm);color:var(--bmc)}
 .theirs .m{background:var(--bt);color:var(--btc)}
-.r.first.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll)::before{content:"";position:absolute;top:0;left:-8px;width:0;height:0;border-top:8px solid var(--bt);border-left:8px solid transparent}
-.r.first.mine .m:not(.pic):not(.pay):not(.emo):not(.poll)::before{content:"";position:absolute;top:0;right:-8px;width:0;height:0;border-top:8px solid var(--bm);border-right:8px solid transparent}
-.r.first.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll){border-top-left-radius:0}
-.r.first.mine .m:not(.pic):not(.pay):not(.emo):not(.poll){border-top-right-radius:0}
+/* 修复：首条消息不再额外绘制顶部小三角，避免气泡多出一个角 */
+.r.first.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll)::before,
+.r.first.mine .m:not(.pic):not(.pay):not(.emo):not(.poll)::before{content:none!important}
+.r.first.theirs .m:not(.pic):not(.pay):not(.emo):not(.poll),
+.r.first.mine .m:not(.pic):not(.pay):not(.emo):not(.poll){border-top-left-radius:var(--br,18px);border-top-right-radius:var(--br,18px)}
 .m::after{content:none}
 .m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots)::after{content:"";display:block;clear:both}
 .mt{float:right;position:relative;top:5px;margin-left:10px;font-size:11px;line-height:1;color:var(--mute);display:inline-flex;align-items:center;gap:3px;white-space:nowrap;font-variant-numeric:tabular-nums;opacity:1}
@@ -2556,6 +2557,11 @@ function pollCard(m,e){
 })();
 })();
 </script>
+<style id="avatar-circle-fix">
+/* 修复：导入头像后仍固定为圆形裁切；不修改原始图片文件 */
+.av,.av2,#av{border-radius:50%!important;overflow:hidden!important}
+.av img,.av2 img,#av img{width:100%;height:100%;object-fit:cover;border-radius:50%!important;clip-path:circle(50% at 50% 50%)!important;display:block}
+</style>
 </body>
 </html>
 

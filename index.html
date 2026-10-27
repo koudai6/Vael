@@ -2768,3 +2768,43 @@ html[data-shav] #chat .r:has(.avw .tm) { margin-bottom:17px !important; }
 html[data-shav] #chat .r:has(.avw .tm) { margin-bottom: 17px !important; }
 html[data-shav] #chat .avw .tm { display:block !important; visibility:visible !important; opacity:.72 !important; }
 </style>
+<style id="avatar-circle-honor-fix">
+.av, .av2, #av, .lav, .cpv, .pav, #callAv, #pillAv, .call-av {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+  mask-image: radial-gradient(white, black) !important;
+}
+.av img, .av2 img, #av img,
+.lav img, .cpv img, .pav img,
+#callAv img, #pillAv img, .call-av img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 50% !important;
+  -webkit-border-radius: 50% !important;
+  clip-path: circle(50% at 50% 50%) !important;
+  -webkit-clip-path: circle(50% at 50% 50%) !important;
+  display: block !important;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.av        { width: 46px  !important; height: 46px  !important; }
+.av2       { width: 36px  !important; height: 36px  !important; }
+.lav       { width: 54px  !important; height: 54px  !important; }
+.cpv       { width: 56px  !important; height: 56px  !important; }
+.pav, #pillAv { width: 30px !important; height: 30px !important; }
+#callAv, .call-av { width: 124px !important; height: 124px !important; }
+html[data-frm] .av2.me, html[data-fro] .av2.ot, html[data-fro] #av {
+  overflow: visible !important;
+}
+html[data-frm] .av2.me img, html[data-fro] .av2.ot img, html[data-fro] #av img {
+  border-radius: 50% !important;
+  clip-path: circle(50% at 50% 50%) !important;
+  -webkit-clip-path: circle(50% at 50% 50%) !important;
+}
+html[data-shav] #chat .avw { overflow: visible !important; }
+</style>

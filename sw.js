@@ -1,4 +1,4 @@
-const CACHE = 'zk-chat-v10';
+const CACHE = 'zk-chat-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -18,13 +18,31 @@ self.addEventListener('activate', e => {
       .then(() => self.clients.claim())
   );
 });
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  // 对 manifest 和 html 优先网络，避免装完还用旧配置
+  const url = new URL(req.url);
+  const isCritical = /manifest\.json$|index\.html$|\/$/.test(url.pathname) || url.pathname.endsWith('/sw.js');
+  if (isCritical) {
+    e.respondWith(
+      fetch(req).then(res => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(req).then(cached => {
       const net = fetch(req).then(res => {
-        if (res && res.ok && (req.url.startsWith(self.location.origin))) {
+        if (res && res.ok && req.url.startsWith(self.location.origin)) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
         }

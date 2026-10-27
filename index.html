@@ -1513,7 +1513,7 @@ function bgTab(body){
     const np=('Notification' in window)?({granted:'已允许',denied:'已拒绝',default:'未询问'}[Notification.permission]||Notification.permission):'不支持';
     const md=('mediaSession' in navigator)&&navigator.mediaSession.metadata;
     const rows=[
-      ['运行环境',standalone?'主屏幕':'浏览器'],
+      ['运行环境',(matchMedia('(display-mode: fullscreen)').matches?'全屏':standalone?'主屏幕':'浏览器')+' · '+(['fullscreen','standalone','minimal-ui','browser'].find(m=>matchMedia('(display-mode: '+m+')').matches)||'?')],
       ['通知权限',np],
       ['Service Worker',swState],
       ['保活音频',keepAudio?(keepAudio.paused?'已暂停':'播放中'):'未启动'],
@@ -2523,7 +2523,13 @@ function pollCard(m,e){
   }));
   tickStatus();checkLetters();
   if(G.sys.keepAlive){toast('点一下屏幕恢复后台保活');document.addEventListener('pointerdown',()=>{startKeep()},{once:true,capture:true})}
-  if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      try{reg.update()}catch(e){}
+      if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+    }).catch(()=>{});
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{/* 新 SW 接管后不强制刷新，避免丢输入 */});
+  }
 })();
 })();
 </script>

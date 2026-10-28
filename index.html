@@ -1120,18 +1120,25 @@ function pickFiles(max,q,cb){
     out.forEach((src,i)=>push({id:Date.now()+i,mine:true,type:'image',src,t:Date.now()+i,read:false}));
   };f.click();
 }
-function pickFile(max,q,cb){
+function pickFile(max,q,cb,square){
   const f=document.createElement('input');f.type='file';f.accept='image/*';
   f.onchange=()=>{const file=f.files[0];if(!file)return;const rd=new FileReader();
     rd.onload=()=>{const im=new Image();im.onload=()=>{
-      const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');
-      c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
-      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+      const c=document.createElement('canvas'),x=c.getContext('2d');
+      if(square){/* 头像：居中裁成正方形，再由 CSS 显示为圆形 */
+        const nw=im.naturalWidth,nh=im.naturalHeight,side=Math.min(nw,nh),out=Math.min(max,side);
+        c.width=c.height=out;x.fillStyle='#fff';x.fillRect(0,0,out,out);
+        x.drawImage(im,(nw-side)/2,(nh-side)/2,side,side,0,0,out,out);
+      }else{
+        const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+        c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
+        x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+      }
       cb(c.toDataURL('image/jpeg',q))};im.src=rd.result};
     rd.readAsDataURL(file)};
   f.click();
 }
-const setImg=(key,max)=>pickFile(max,.9,u=>{S.profile[key]=u;paintHeader();render();paintBg();save()});
+const setImg=(key,max)=>pickFile(max,.9,u=>{S.profile[key]=u;paintHeader();render();paintBg();save()},key==='avatar'||key==='myAvatar');
 $('pickAv').onclick=()=>setImg('avatar',320);$('pickMy').onclick=()=>setImg('myAvatar',320);
 $('pickBg').onclick=()=>setImg('bg',1280);
 $('rstBg').onclick=()=>{S.profile.bg='';paintBg();save()};
@@ -2247,7 +2254,7 @@ function contactDlg(){
   let nm,av='';
   modal('新建联系人',b=>{
     const pv=h('div','cpv'),pk=h('button','','选择头像');
-    fillAv(pv,'');pk.onclick=()=>pickFile(320,.9,u=>{av=u;fillAv(pv,u)});
+    fillAv(pv,'');pk.onclick=()=>pickFile(320,.9,u=>{av=u;fillAv(pv,u)},true);
     nm=h('input');nm.placeholder='联系人昵称';nm.maxLength=20;
     const row=h('div','rowf');row.append(pv,pk);b.append(row,nm);
   },[['取消'],['创建',()=>{
@@ -2776,8 +2783,6 @@ html[data-shav] .r .m{max-width:calc(100% - 120px)}
   mask: none !important;
 }
 .av, .av2, #av, #callAv, #pillAv {
-  width: var(--avatar-size, auto);
-  aspect-ratio: 1 / 1;
   border-radius: 50% !important;
   overflow: hidden !important;
 }

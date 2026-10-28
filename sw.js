@@ -1,4 +1,4 @@
-const CACHE = 'zk-chat-v13';
+const CACHE = 'zk-chat-v14';
 const ASSETS = [
   './',
   './index.html',

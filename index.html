@@ -2816,3 +2816,36 @@ html[data-shav] #chat .r:has(.avw .tm) { margin-bottom:17px !important; }
 html[data-shav] #chat .r:has(.avw .tm) { margin-bottom: 17px !important; }
 html[data-shav] #chat .avw .tm { display:block !important; visibility:visible !important; opacity:.72 !important; }
 </style>
+<style id="avatar-frame-keep-fix">
+/* ===== 保留头像框，同时强制头像是圆的 ===== */
+
+/* 1) 设了头像框的那一侧：容器 overflow 保持 visible，让装饰外圈能显示 */
+html[data-frm] .av2.me,
+html[data-frm] #av,
+html[data-fro] .av2.ot,
+html[data-fro] #av {
+  overflow: visible !important;
+  /* 去掉灰色方形底，否则头像圆了但四角会露灰色方块 */
+  background: transparent !important;
+}
+
+/* 2) 核心：图片自己用 mask 裁成圆形（不依赖 clip-path） */
+.av img, .av2 img, #av img {
+  -webkit-mask-image: radial-gradient(circle 50% at 50% 50%, #000 99%, transparent 100%) !important;
+  -webkit-mask-size: 100% 100% !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-image: radial-gradient(circle 50% at 50% 50%, #000 99%, transparent 100%) !important;
+  mask-size: 100% 100% !important;
+  mask-repeat: no-repeat !important;
+  border-radius: 50% !important;
+  clip-path: none !important; /* 关掉荣耀上会失效的那条 */
+}
+
+/* 3) 没设头像框时：容器照旧圆裁剪，头像也圆 */
+html:not([data-frm]) .av2.me,
+html:not([data-fro]) .av2.ot,
+html:not([data-fro]) #av {
+  overflow: hidden !important;
+  border-radius: 50% !important;
+}
+</style>
